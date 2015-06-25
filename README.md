@@ -9,5 +9,5 @@ I'll slowly free parts that are not bound to our own infrastructure in this
 repository. The modules and scripts I wrote mainly use [boto3][1] and
 [troposphere][2], please check those two fabulous projects out!
 
-[1]: https://github.com/cloudtools/troposphere
-[2]: http://boto3.readthedocs.org/en/latest/
+[1]: http://boto3.readthedocs.org/en/latest/
+[2]: https://github.com/cloudtools/troposphere
