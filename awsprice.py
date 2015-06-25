@@ -136,8 +136,11 @@ def get_rtype(resource):
 
     return typelist
 
+# Example usage of this module: awsprice.py ec2 linux-od eu-west-1
+
 if __name__ == '__main__':
     try:
-        print(get_price(sys.argv[1], sys.argv[2], sys.argv[3]))
+        all_instances = get_all_instances(sys.argv[1], sys.argv[2], sys.argv[3])
+        print(get_instance_attrs(all_instances, 't2.micro'))
     except IndexError:
         print('usage: {0} <resource> <type> <region>'.format(sys.argv[0]))
