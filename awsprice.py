@@ -78,12 +78,12 @@ def get_regions(resource, rtype):
 
     return {}
 
-def get_all_instances(resource = None, restype = None, region = None):
+def get_all_instances(region = None, resource = None, restype = None):
     '''Returns an array of resource type on region
 
+    :param str region: Region to lookup (``us-west-1`` ...)
     :param str resource: Resource to query, ``ec2`` or ``rds``
     :param str restype: Resource type (``linux-od``, ``rhel-od`` ...)
-    :param str region: Region to lookup (``us-west-1`` ...)
 
     :return prices: Dict containing instances properties and prices per hour
     :rtype: dict
@@ -154,7 +154,7 @@ def get_restype(resource):
 
     return typelist
 
-def instance_price(region, resource, itype):
+def instance_price(fulllist, itype):
     '''An example function that gives prices for a given instance type
 
     :param str region: AWS region
@@ -164,9 +164,7 @@ def instance_price(region, resource, itype):
     :return: A simple hourly prices dict
     :rtype: dict
     '''
-    prices = get_all_instances(
-        'ec2', resource, region
-    )['instanceTypes']
+    prices = fulllist['instanceTypes']
 
     pricelist = {
         'ondemand': None,
