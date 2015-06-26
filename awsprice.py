@@ -10,14 +10,13 @@ AWS website has ``<script>`` sections containing ``JavaScript`` which declares
 a ``model`` variable. This variable points to an URL whose content is JS
 readable ``JSON`` listing instances types, attributes and prices.
 
-This module uses those ``JSON`` dicts to build ``python`` dicts, it can be used
-as a replacement of http://ec2instances.info/instances.json
+This module uses those ``JSON`` dicts to build ``python`` dicts.
 '''
 
 import requests
 import re
 import sys
-import demjson
+import json
 from bs4 import BeautifulSoup
 
 def get_awshtml(resource):
@@ -69,20 +68,21 @@ def get_regions(resource, rtype):
         js = requests.get(url)
 
         # as of 31/05/2015, format is
-        # callback({vers=0.01,config{:{...}});
-        jregex = re.search('[^\(]+\(\{[^{]+(.+)\}\);$', js.text)
+        # od: callback({vers=0.01,config{:{...}});
+        # reserved: callback({config{:{...}},vers:0.01});
+        jregex = re.search('.+config:(\{(.+)\})(\}\);|,vers:0\.0.+)', js.text)
         if jregex:
-            # demjson is less picky than json, keys are not "enclosed"
-            pricelist = demjson.decode(jregex.group(1))
+            s = re.sub(r'([a-zA-Z0-9_-]+):', r'"\1":', jregex.group(1))
+            pricelist = json.loads(s)
             return [ r for r in pricelist['regions']]
 
     return {}
 
-def get_all_instances(resource = None, rtype = None, region = None):
+def get_all_instances(resource = None, restype = None, region = None):
     '''Returns an array of resource type on region
 
     :param str resource: Resource to query, ``ec2`` or ``rds``
-    :param str rtype: Resource type (``linux-od``, ``rhel-od`` ...)
+    :param str restype: Resource type (``linux-od``, ``rhel-od`` ...)
     :param str region: Region to lookup (``us-west-1`` ...)
 
     :return prices: Dict containing instances properties and prices per hour
@@ -94,7 +94,7 @@ def get_all_instances(resource = None, rtype = None, region = None):
        model: '//a0.awsstatic.com/pricing/1/ec2/linux-od.min.js'
     '''
 
-    pricelist = get_regions(resource, rtype)
+    pricelist = get_regions(resource, restype)
     for reg in pricelist:
         if reg['region'] == region:
             return reg
@@ -117,7 +117,25 @@ def get_instance_attrs(fulllist, itype):
             if i['size'] == itype:
                 return i
 
-def get_rtype(resource):
+def get_instance_prices(fulllist, itype):
+    '''Returns prices corresponding to a reserve instance type, as of 26/06/15,
+    those are listed in the ``ri-v2/*`` rtypes.
+
+    :param str fulllist: Full instance list caracteristics from
+    ``get_all_instances``
+    :param str itype: Instance type
+
+    :return: Dict of given instance type price
+    :rtype: dict
+    '''
+
+    inst_type = {}
+    for inst_type in fulllist['instanceTypes']:
+        if inst_type['type'] == itype:
+            return inst_type['terms']
+    
+
+def get_restype(resource):
     '''List resource types
 
     :param str resource: Resource to query, ``ec2`` or ``rds``
@@ -130,17 +148,62 @@ def get_rtype(resource):
 
     typelist = []
     for url in models:
-        rtype = re.search('.*/{0}/(.+)\.min\.js'.format(resource), url)
-        if rtype and rtype.group(1):
-            typelist.append(rtype.group(1))
+        restype = re.search('.*/{0}/(.+)\.min\.js'.format(resource), url)
+        if restype and restype.group(1):
+            typelist.append(restype.group(1))
 
     return typelist
 
-# Example usage of this module: awsprice.py ec2 linux-od eu-west-1
+def instance_price(region, resource, itype):
+    '''An example function that gives prices for a given instance type
+
+    :param str region: AWS region
+    :param str resource: Pricing resource (``linux-od``...)
+    :param str itype: Instance type (``t2.micro``, ``m3.large``...)
+
+    :return: A simple hourly prices dict
+    :rtype: dict
+    '''
+    prices = get_all_instances(
+        'ec2', resource, region
+    )['instanceTypes']
+
+    pricelist = {
+        'ondemand': None,
+        'yrTerm1': {},
+        'yrTerm3': {}
+    }
+    for rtype in prices:  # resource type (t2.micro, m3.large...)
+        if rtype['type'] == itype:
+            pricelist['ondemand'] = \
+                rtype['terms'][0]['onDemandHourly'][0]['prices']['USD']
+            for term in rtype['terms']:  # terms (yrTerm1, yrTerm3)
+                for option in term['purchaseOptions']:
+                    for value in option['valueColumns']:
+                        if option['purchaseOption'] == 'partialUpfront':
+                            if value['name'] == 'effectiveHourly':
+                                pricelist[term['term']]['partial'] = \
+                                    value['prices']['USD']
+                        if option['purchaseOption'] == 'allUpfront':
+                            if value['name'] == 'effectiveHourly':
+                                pricelist[term['term']]['full'] = \
+                                    value['prices']['USD']
+                        if (term['term'] == 'yrTerm1' and
+                            option['purchaseOption'] == 'noUpfront' and
+                            value['name'] == 'effectiveHourly'):
+                                pricelist['yrTerm1']['noup'] = \
+                                    value['prices']['USD']
+    return pricelist
+
+
+# Example usage
 
 if __name__ == '__main__':
     try:
         all_instances = get_all_instances(sys.argv[1], sys.argv[2], sys.argv[3])
         print(get_instance_attrs(all_instances, 't2.micro'))
+        print(instance_price(
+            'eu-west-1', 'ri-v2/linux-unix-shared', 'm4.xlarge')
+        )
     except IndexError:
         print('usage: {0} <resource> <type> <region>'.format(sys.argv[0]))
