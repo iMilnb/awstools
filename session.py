@@ -1,0 +1,203 @@
+
+'''Helper functions in order to easily manipulate AWS objects with `boto3`_
+
+.. module:: Aws
+   :platform: UNIX
+   :synopsis: Ease access to boto3 and wraps many useful functions
+
+.. moduleauthor:: Emile 'iMil' Heitor <Emile.Heitor@NBS-System.Com>
+
+.. _boto3: http://boto3.readthedocs.org/en/latest/
+'''
+
+import boto3
+import base64
+
+class Aws:
+    '''Aws class constructor
+
+    :param str profile: Region profile, as defined in awscli configuration
+    :param str t: Resource type, like ``ec2``, ``cloudformation``...
+
+    :return: Access to resource, client and helpers
+    '''
+    def __init__(self, profile, t):
+        '''Init method
+        '''
+        self.profile = profile
+        if profile:
+            self.session = boto3.Session(profile_name=profile)
+        if t:
+            self.client = self.session.client(t)
+            self.resource = self.session.resource(t)
+        if self.client and t == 'ec2':
+            az = self.client.describe_availability_zones()
+            self.region = az['AvailabilityZones'][0]['RegionName']
+
+
+    def lsinstances(self, obj):
+        '''Get all instances objects
+
+        :param str obj: String form of resource type to get list from
+        :return: All instances in object form
+        '''
+        return getattr(self.resource, obj).all()
+
+    def mktags(self, taglst):
+        '''Makes a Filter-friendly tag list
+
+        :param dict taglst: A dict of key / value pairs
+
+        :return: Filter-friendly tag list
+        :rtype: dict
+        '''
+        tags = []
+        for t in taglst:
+            tags.append({'Key': t, 'Value': taglst[t]})
+        return tags
+
+    def tags2dict(self, tags):
+        '''Converts a Filter tag list to a dict
+
+        :param dict tags: A dict of Filter tag list
+
+        :return: A simple key / value dict
+        :rtype: dict
+        '''
+        ret = {}
+        for t in tags:
+            ret[t['Key']] = t['Value']
+        return ret
+
+    def get_id_from_nametag(self, res, tag):
+        '''Returns a resource id matching a Name tag
+
+        :param str obj: The resource to get the id from
+        :param str tag: The Name tag
+
+        :return: Resource id
+        '''
+        for o in getattr(self.resource, res).filter(
+            Filters=[{'Name': 'tag:Name', 'Values': [tag]}]
+        ):
+            return o.id
+    
+        return None
+
+    def mkuserdata(self, b64 = False, userdata = [], name = '', netblock = ''):
+        '''Merge userdata files and possibly convert it to ``base64``
+
+        :param boolean b64: Should we convert userdata to ``base64``
+        :param list userdata: A list of userdata files
+        :param str name: Name to be passed as an argument to userdata
+        :param str netblock: Netblock (CIDR) argument for userdata
+
+        :return: Merged userdata files, possibly in ``base64``
+        :rtype: str
+        '''
+        sh = ''
+        for u in userdata:
+            with open('userdata/{0}'.format(u), 'r') as f:
+                sh = sh + f.read()
+        sh = sh.format(self.profile, name.lower(), netblock)
+        if b64 is False:
+            return sh
+        else:
+            return base64.b64encode(sh)
+
+    def gettagval(self, res, tag):
+        '''Returns a tag value for a given resource
+
+        :param str res: The resource to get the tag from
+        :param str tag: Tag's name
+
+        :return: Tag value
+        :rtype: str
+        '''
+        for t in res.tags:
+            if t['Key'].lower() == tag.lower():
+                return t['Value']
+        return 'none'
+
+    def create_tag(self, rid, k, v):
+        '''Creates a tag entry for a given resource
+
+        :param rid: Resource id
+        :k: Tag key, will be titled (upper case first letter)
+        :v: Tag value
+        '''
+        self.resource.create_tags(
+            Resources = [rid],
+            Tags = self.mktags({
+                k.title(): v
+            })
+        )
+
+    def lsinstnames(self):
+        '''Returns a dict of instances ids and Name tag
+
+        :return: Dict of ``key`` = ``id`` / ``value`` = ``Name tag``
+        '''
+        instances = self.resource.instances.all()
+        instname = {}
+        for i in instances:
+            instname[i.id] = self.gettagval(i, 'Name')
+
+        return instname
+
+    def dmesg(self, name):
+        '''Returns console output for a given instance ``id`` or Name tag
+
+        :param str name: Instance ``id`` or Name tag
+
+        :return: Console output
+        :rtype: str
+        '''
+        instances = self.lsinstnames()
+        for i in instances:
+            if name in i or name in instances[i]:
+                return self.client.get_console_output(InstanceId=i)['Output']
+
+    def getamis(self, glob):
+        '''Returns all AMI ids and creation date ordered by the latter
+
+        :param str glob: An AMI name ``glob``
+
+        :return: Ordered list of AMI ids
+        :rtype: list
+        '''
+        imgs = {}
+        for i in self.resource.images.filter(
+            Filters = [{'Name': 'name', 'Values': [glob]}]
+        ):
+            imgs[i.id] = i.creation_date
+        return sorted(imgs, key = imgs.get)
+
+    def getami(self, glob):
+        '''Returns the latest AMI matching ``glob``
+
+        :param str glob: An AMI name ``glob``
+
+        :return: Latest AMI matching the ``glob``
+        :rtype: str
+        '''
+        return self.getamis(glob)[-1]
+
+    def getinst(self, iid):
+        '''Returns an instance resource
+
+        :param str iid: Instance id
+
+        :return: Instance resource
+        '''
+        return self.resource.Instance(iid)
+
+    def getall(self, res):
+        '''Return all occurences for a resource
+
+        :param str res: Resource name
+
+        :return: List of all resources
+        :rtype: list
+        '''
+        return [i for i in getattr(self.resource, res).all()]
