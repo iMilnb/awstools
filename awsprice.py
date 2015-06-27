@@ -217,8 +217,6 @@ if __name__ == '__main__':
     try:
         all_instances = get_all_instances(sys.argv[1], sys.argv[2], sys.argv[3])
         print(get_instance_attrs(all_instances, 't2.micro'))
-        print(instance_price(
-            'eu-west-1', 'ri-v2/linux-unix-shared', 'm4.xlarge')
-        )
+        print(instance_price(all_instances, 'm4.xlarge'))
     except IndexError:
-        print('usage: {0} <resource> <type> <region>'.format(sys.argv[0]))
+        print('usage: {0} <region> <resource> <type>'.format(sys.argv[0]))
