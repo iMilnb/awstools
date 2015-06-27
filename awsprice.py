@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-'''Price retrieval module for EC2 and RDS AWS resources
+'''Price and attributes retrieval module for EC2 and RDS AWS resources
 
 This module uses the HTML code within AWS website, which will most probably
 change from time to time, dont blindly rely on this module before checking it
@@ -11,6 +11,25 @@ a ``model`` variable. This variable points to an URL whose content is JS
 readable ``JSON`` listing instances types, attributes and prices.
 
 This module uses those ``JSON`` dicts to build ``python`` dicts.
+
+.. note::
+
+   As of 06/2015, the resources you might be interested in will probably be:
+
+     - \*-od: on-demand attributes and on-demand price only
+     - ri-v2/\*: prices by reserved instance options
+
+   All resource types can be retrieved with the ``get_restype`` function
+
+Typical usage:
+
+   .. code-block:: python
+   
+      fulllist = ap.instance_price(
+          'us-west-1', 'ec2', 'ri-v2/linux-unix-shared'
+      )
+      ap.instance_price(fulllist, 'm3.xlarge')
+
 '''
 
 import requests
@@ -49,11 +68,11 @@ def get_models(resource):
 
     return urllist
 
-def get_regions(resource, rtype):
-    '''Returns price a price list dict by regions
+def get_regions(resource, restype):
+    '''Returns attributes or price list dict by regions
 
     :param str resource: Resource to query, ``ec2`` or ``rds``
-    :param str rtype: Resource type (``linux-od``, ``rhel-od`` ...)
+    :param str restype: Resource type (``linux-od``, ``rhel-od`` ...)
 
     :return: Price list with region as key
     :rtype: dict
@@ -62,7 +81,7 @@ def get_regions(resource, rtype):
     models = get_models(resource)
 
     for url in models:
-        if rtype not in url:
+        if restype not in url:
             continue
 
         js = requests.get(url)
@@ -74,7 +93,7 @@ def get_regions(resource, rtype):
         if jregex:
             s = re.sub(r'([a-zA-Z0-9_-]+):', r'"\1":', jregex.group(1))
             pricelist = json.loads(s)
-            return [ r for r in pricelist['regions']]
+            return [r for r in pricelist['regions']]
 
     return {}
 
@@ -104,8 +123,7 @@ def get_all_instances(region = None, resource = None, restype = None):
 def get_instance_attrs(fulllist, itype):
     '''Returns instance price and caracteristics for a given region
 
-    :param str fulllist: Full instance list caracteristics from
-    ``get_all_instances``
+    :param str fulllist: Full instance list from ``get_all_instances``
     :param str itype: Instance type
 
     :return: Dict of instance caracteristics
@@ -121,8 +139,7 @@ def get_instance_prices(fulllist, itype):
     '''Returns prices corresponding to a reserve instance type, as of 26/06/15,
     those are listed in the ``ri-v2/*`` rtypes.
 
-    :param str fulllist: Full instance list caracteristics from
-    ``get_all_instances``
+    :param str fulllist: Full instance list from ``get_all_instances``
     :param str itype: Instance type
 
     :return: Dict of given instance type price
