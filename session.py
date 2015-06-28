@@ -212,9 +212,9 @@ class Aws:
         .. code-block:: python
 
            dnsrecord = {
-               'zone': 'foo.com',
-               'rectype': 'A',
-               'name': 'myhost',
+               'zone': 'foo.com',  # domain name
+               'rectype': 'A'|'NS'|'CNAME'|'MX'|'PTR'|'SRV'|'SPF'|'AAAA',
+               'name': 'myhost',  # host part only
                'target': 'targetId'|'www.bar.com'|'10.0.0.1',
                'ttl': 300,  # do not add TTL for an alias target
                'healthcheck': True,  # optional, alias target only
