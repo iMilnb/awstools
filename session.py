@@ -5,7 +5,7 @@
    :platform: UNIX
    :synopsis: Ease access to boto3 and wraps many useful functions
 
-.. moduleauthor:: Emile 'iMil' Heitor <Emile.Heitor@NBS-System.Com>
+.. moduleauthor:: Emile 'iMil' Heitor <imil@NetBSD.org>
 
 .. _boto3: http://boto3.readthedocs.org/en/latest/
 '''
@@ -27,13 +27,14 @@ class Aws:
         self.profile = profile
         if profile:
             self.session = boto3.Session(profile_name=profile)
+            self.region = self.session._session.get_config_variable('region')
         if t:
             self.client = self.session.client(t)
-            self.resource = self.session.resource(t)
-        if self.client and t == 'ec2':
-            az = self.client.describe_availability_zones()
-            self.region = az['AvailabilityZones'][0]['RegionName']
-
+            # some objects don't have resource (i.e. route53)
+            try:
+                self.resource = self.session.resource(t)
+            except:
+                pass
 
     def lsinstances(self, obj):
         '''Get all instances objects
@@ -201,3 +202,89 @@ class Aws:
         :rtype: list
         '''
         return [i for i in getattr(self.resource, res).all()]
+
+    def change_nsrecord(self, action, dnsrecord):
+        '''Create a DNS record
+
+        :param str action: One of ``CREATE``, ``DELETE`` or ``UPSERT``
+        :param dict dnsrecord: A dict describing the DNS record to change
+
+        .. code-block:: python
+
+           dnsrecord = {
+               'zone': 'foo.com',
+               'rectype': 'A',
+               'name': 'myhost',
+               'target': 'targetId'|'www.bar.com'|'10.0.0.1',
+               'ttl': 300,  # do not add TTL for an alias target
+               'healthcheck': True,  # optional, alias target only
+               'dnsname': 'foo-1.region.amazonaws.com'  # alias target only
+           }
+
+        .. note::
+
+           For a ``targetId`` record, ``dnsname`` is the external DNS name AWS
+           creates for the ELB, S3 bucket, CloudFront distribution or another
+           route 53 resource on the same hosted zone.
+           Also note that an ``AliasTarget`` must not have a ``TTL`` specified.
+
+        Usage:
+
+        .. code-block:: python
+
+           obj.change_nsrecord('CREATE', dnsrecord)
+
+        Documentation:
+
+        * http://docs.aws.amazon.com/Route53/latest/APIReference/CreateAliasRRSAPI.html
+        * http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/quickref-route53.html
+        * http://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resource-record-sets-choosing-alias-non-alias.html
+
+        '''
+
+        hzones = self.client.list_hosted_zones_by_name(
+            DNSName = dnsrecord['zone']
+        )
+        zoneid = hzones['HostedZones'][0]['Id']
+
+        dnsname = '{0}.{1}.'.format(dnsrecord['name'], dnsrecord['zone'])
+
+        change = {
+            'Action': action,
+            'ResourceRecordSet': {
+                'Name': dnsname,
+                'Type': dnsrecord['rectype'],
+            }
+        }
+
+        if 'dnsname' in dnsrecord:  # Alias target
+            if not 'healthcheck' in dnsrecord:
+                hc = False
+            else:
+                hc = dnsrecord['healthcheck']
+            change['ResourceRecordSet']['AliasTarget'] = {
+                'HostedZoneId': dnsrecord['target'],
+                'DNSName': dnsrecord['dnsname'],
+                'EvaluateTargetHealth': hc
+            }
+            change['ResourceRecordSet']['SetIdentifier'] = '{0}_{1}_{2}'.format(
+                self.region, dnsrecord['name'], dnsrecord['zone']
+            )
+            change['ResourceRecordSet']['Region'] = self.region
+        else:
+            change['ResourceRecordSet']['TTL'] = dnsrecord['ttl']
+            change['ResourceRecordSet']['ResourceRecords'] = [
+                {'Value': dnsrecord['target']}
+            ]
+
+        cb = {
+            'Comment': '{0} / {1} / {2}'.format(
+                action, dnsrecord['name'], dnsrecord['zone']
+            ),
+            'Changes': [change]
+        }
+
+        self.client.change_resource_record_sets(
+            HostedZoneId = zoneid,
+            ChangeBatch = cb
+        )
