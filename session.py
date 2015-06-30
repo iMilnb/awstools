@@ -204,7 +204,7 @@ class Aws:
         return [i for i in getattr(self.resource, res).all()]
 
     def change_nsrecord(self, action, dnsrecord):
-        '''Create a DNS record
+        '''Create, delete or modify a DNS record
 
         :param str action: One of ``CREATE``, ``DELETE`` or ``UPSERT``
         :param dict dnsrecord: A dict describing the DNS record to change
