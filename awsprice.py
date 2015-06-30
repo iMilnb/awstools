@@ -25,7 +25,7 @@ Typical usage:
 
    .. code-block:: python
    
-      fulllist = ap.instance_price(
+      fulllist = ap.get_all_instances(
           'us-west-1', 'ec2', 'ri-v2/linux-unix-shared'
       )
       ap.instance_price(fulllist, 'm3.xlarge')
@@ -150,7 +150,14 @@ def get_instance_prices(fulllist, itype):
     for inst_type in fulllist['instanceTypes']:
         if inst_type['type'] == itype:
             return inst_type['terms']
-    
+
+def get_insttypes(fulllist):
+
+    inst_types = []
+    for inst_type in fulllist['instanceTypes']:
+        inst_types.append(inst_type['type'])
+
+    return inst_types
 
 def get_restype(resource):
     '''List resource types
