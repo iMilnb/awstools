@@ -281,9 +281,6 @@ def prices2csv(fulllist):
 
     f.write('{0}\n'.format(head))
 
-    def floatval(val):
-        return round((float(val) * 24 * 30.5), 5)
-
     # parse in instance order
     for itype in typelist:
         row = itype
@@ -292,7 +289,7 @@ def prices2csv(fulllist):
             for inst in csvarr:
                 if inst['type'] == itype:
                     if inst[region]['avail'] is False:
-                        tmprow = 'N,,,,,,'
+                        tmprow = 'N,,,,,'
                     else:
                         ireg = inst[region]
                         tmprow = 'Y,{0},{1},{2},{3},{4}'.format(
