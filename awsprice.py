@@ -181,8 +181,7 @@ def get_restype(resource):
 def instance_price(fulllist, itype):
     '''An example function that gives prices for a given instance type
 
-    :param str region: AWS region
-    :param str resource: Pricing resource (``linux-od``...)
+    :param str fulllist: Full instance list from ``get_all_instances``
     :param str itype: Instance type (``t2.micro``, ``m3.large``...)
 
     :return: A simple hourly prices dict
@@ -216,6 +215,98 @@ def instance_price(fulllist, itype):
                                 pricelist['yrTerm1']['noup'] = \
                                     value['prices']['USD']
     return pricelist
+
+def prices2csv(fulllist):
+    '''An example function that converts all instances prices to a CSV file
+
+    :param str fulllist: Full instance by regions list from ``get_regions``
+
+    .. note::
+
+       If may want to modify the ``head`` and ``tmprow`` variables to suit your
+       needs.
+    '''
+
+    typelist = []
+    for region in fulllist:
+        for itype in region['instanceTypes']:
+            if not itype['type'] in typelist:
+                typelist.append(itype['type'])
+
+    def getusd(term, option, duration):
+        # fulllist[x]['instanceTypes'][y]['terms'][z]['purchaseOptions']
+        for opt in term['purchaseOptions']:
+            if opt['purchaseOption'] == option:
+                for vc in opt['valueColumns']:
+                    if vc['name'] == duration:
+                        return vc['prices']['USD']
+
+    regions = []
+    csvarr = []
+    for itype in typelist:
+        row = {'type': itype}
+        # fulllist[x]
+        for region in fulllist:
+            curreg = region['region']
+            regions.append(curreg)
+            row[curreg] = {}
+            row[curreg]['avail'] = False
+            # fulllist[x]['instanceTypes']
+            for family in region['instanceTypes']:
+                if family['type'] == itype:
+                    row[curreg]['avail'] = True
+                    # fulllist[x]['instanceTypes'][y]
+                    for term in family['terms']:
+                        row[curreg][term['term']] = {}
+                        for otype in [
+                            'noUpfront', 'partialUpfront', 'allUpfront'
+                        ]:
+                            row[curreg][term['term']][otype] = {}
+                            for d in [
+                                'upfront', 'monthlyStar'
+                            ]:
+                                row[curreg][term['term']][otype][d] = getusd(
+                                    term, otype, d
+                                )
+
+        csvarr.append(row)
+
+    head = ''
+    for region in regions:
+        head = ','.join([
+            head, '{0},1y no up,1y part up,monthly,3y part up,monthly'
+        ]).format(region)
+
+    f = open('allprices.csv', 'w')
+
+    f.write('{0}\n'.format(head))
+
+    def floatval(val):
+        return round((float(val) * 24 * 30.5), 5)
+
+    # parse in instance order
+    for itype in typelist:
+        row = itype
+        # then parse in region order
+        for region in regions:
+            for inst in csvarr:
+                if inst['type'] == itype:
+                    if inst[region]['avail'] is False:
+                        tmprow = 'N,,,,,,'
+                    else:
+                        ireg = inst[region]
+                        tmprow = 'Y,{0},{1},{2},{3},{4}'.format(
+                            ireg['yrTerm1']['noUpfront']['monthlyStar'],
+                            ireg['yrTerm1']['partialUpfront']['upfront'],
+                            ireg['yrTerm1']['partialUpfront']['monthlyStar'],
+                            ireg['yrTerm3']['partialUpfront']['upfront'],
+                            ireg['yrTerm3']['partialUpfront']['monthlyStar']
+
+                        )
+                    row = ','.join([row, tmprow])
+        f.write('{0}\n'.format(row))
+
+    f.close()
 
 
 # Example usage
