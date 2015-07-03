@@ -12,6 +12,7 @@
 
 import boto3
 import base64
+import requests
 
 class Aws:
     '''Aws class constructor
@@ -173,6 +174,23 @@ class Aws:
         ):
             imgs[i.id] = i.creation_date
         return sorted(imgs, key = imgs.get)
+
+    def get_debian_ami(self, glob):
+        '''Returns an AMI id matching with official debian wiki list
+
+        :return: Latest AMI matching the ``glob``
+        :rtype: str
+        '''
+        for rel in ['Wheezy', 'Jessie']:
+            if rel.lower() in glob:
+                break
+
+        r = requests.get(
+            'https://wiki.debian.org/Cloud/AmazonEC2Image/{0}'.format(rel)
+        )
+        for ami in self.getamis(glob):
+            if ami in r.text:
+                return ami
 
     def getami(self, glob):
         '''Returns the latest AMI matching ``glob``
