@@ -34,7 +34,7 @@ r = c.create_instance_profile(
     InstanceProfileName = instance_profile
 )
 
-# create the role, associated with the trust policy, here assume EC2 role
+# create the role, associated with the chosen trust policy
 role = '{0}_role'.format(name)
 r = c.create_role(
     RoleName = role,
