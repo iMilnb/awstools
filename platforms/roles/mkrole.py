@@ -4,7 +4,6 @@
 
 import boto3
 import sys
-import json
 
 def usage():
     print(
