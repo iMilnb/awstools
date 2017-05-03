@@ -1,5 +1,15 @@
 #!/bin/sh
 
+usage()
+{
+	echo "$0 -parc"
+	echo "	-p run packer"
+	echo "	-a execute all actions"
+	echo "	-a create IAM roles"
+	echo "	-a create CloudFormation stack"
+	exit 2
+}
+
 flags=''
 
 while [ $# -gt 0 ]; do
@@ -8,7 +18,7 @@ while [ $# -gt 0 ]; do
 	-a) flags="${flags}a" ;;
 	-r) flags="${flags}r" ;;
 	-c) flags="${flags}c" ;;
-	*) echo "Invalid argument"; exit 2 ;;
+	*) usage ;;
 	esac
 	shift
 done
@@ -55,6 +65,6 @@ case ${flags} in
 	aws cloudformation create-stack --stack-name ${STACKNAME} --template-body file://${STACKNAME}.json --parameters file://${PARAMFILE}
 	;;
 *)
-	echo "Wrong flags"
+	usage
 	;;
 esac
