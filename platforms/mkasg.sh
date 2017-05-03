@@ -34,7 +34,8 @@ case ${flags} in
 *a*|*r*)
 	cd roles
 	# HOSTEDZONEID needs to be set in vars for RRset
-	python mkrole.py ${ROLE} ${TRUST_POLICY} ${POLICY_DOCUMENT}
+	HOSTEDZONEID=$HOSTEDZONEID python mkrole.py \
+		${ROLE} ${TRUST_POLICY} ${POLICY_DOCUMENT}
 	;;
 # CloudFormation stack creation
 *a*|*c*)
