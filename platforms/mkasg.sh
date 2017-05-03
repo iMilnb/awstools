@@ -16,6 +16,7 @@ done
 . ./vars
 
 case ${flags} in
+# packer IAM
 *a*|*p*)
 	
 	SGID=$(aws ec2 describe-security-groups --filters "Name=tag:Name, Values=${PKRSG}"| jq -r '.SecurityGroups[0].GroupId')
@@ -29,11 +30,13 @@ case ${flags} in
 		-var "ami_basename=${AMI_BASENAME}" \
 		basic.json
 	;;
+# role creation
 *a*|*r*)
 	cd roles
-
-	python mkrole.py ${ROLENAME} ${TRUST_POLICY} ${POLICY_DOCUMENT}
+	# HOSTEDZONEID needs to be set in vars for RRset
+	python mkrole.py ${ROLE} ${TRUST_POLICY} ${POLICY_DOCUMENT}
 	;;
+# CloudFormation stack creation
 *a*|*c*)
 	# get latest built AMI id
 	AMIID=$(jq -r '.last_run_uuid as $uuid | .builds[] | select(.packer_run_uuid == $uuid) | .artifact_id' packer/manifest.json)

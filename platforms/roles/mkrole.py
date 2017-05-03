@@ -4,6 +4,7 @@
 
 import boto3
 import sys
+import os
 
 def usage():
     print(
@@ -25,11 +26,19 @@ for json_file in ['trust_policy_json', 'policy_document_json']:
     with open(vars()[json_file], 'r') as f:
         vars()[json_file[:-5]] = f.read()
 
+HOSTEDZONEID = os.getenv('HOSTEDZONEID')
+
+if 'HOSTEDZONEID' in policy_document and HOSTEDZONEID:
+    policy_document = policy_document.replace('HOSTEDZONEID', HOSTEDZONEID)
+
 # connect to IAM
 c = boto3.client('iam')
 
 # create the instance profile
-instance_profile = '{0}_instance_profile'.format(name)
+# both instance_profile and role have the same same so instance profile can be
+# deleted from the console. Source:
+# http://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_manage_delete.html
+instance_profile = '{0}_role'.format(name)
 r = c.create_instance_profile(
     InstanceProfileName = instance_profile
 )
