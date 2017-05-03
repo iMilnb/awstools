@@ -48,7 +48,7 @@ case ${flags} in
 	PARAMFILE="${STACKNAME}-parameters.json"
 	echo "${PARAMS}" > "${PARAMFILE}"
 
-	echo aws cloudformation create-stack --stack-name ${STACKNAME} --template-body file://${STACKNAME}.json --parameters file://${PARAMFILE}
+	aws cloudformation create-stack --stack-name ${STACKNAME} --template-body file://${STACKNAME}.json --parameters file://${PARAMFILE}
 	;;
 *)
 	echo "Wrong flags"
