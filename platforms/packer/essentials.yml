@@ -1,0 +1,113 @@
+---
+# call me with --extra-vars "myuser=foo myghuser=foogh"
+
+- hosts: all
+  become: true
+
+  vars:
+    vimrc: |
+      syntax on
+      set ts=8
+      set noai
+      set ruler
+      set tw=80
+      set t_Co=256
+      colorscheme molokai-transparent
+      set laststatus=2
+
+    tmuxconf: |
+      set-option -g prefix2 C-q
+      set-option -g default-terminal "screen-256color"
+
+    profile: |
+      PATH=${PATH}:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin:$HOME/bin
+      # use vim for sudoedit and all $EDITOR
+      EDITOR=vim
+      VISUAL=$EDITOR
+      export EDITOR VISUAL
+      # allow ^Q for screen / tmux
+      stty -ixon
+
+
+  tasks:
+    - name: installs essential tools
+      apt: name={{item}} state=installed
+      with_items:
+        - vim-nox
+        - sudo
+        - tmux
+        - build-essential
+        - git
+        - python
+        - python-pip
+        - zsh
+
+## sudo
+
+    - name: make sudo group passwordless
+      blockinfile:
+        dest: /etc/sudoers
+        block: |
+          %sudo ALL=(ALL) NOPASSWD: ALL
+
+## create the user
+
+    - name: user add
+      user:
+        name: "{{myuser}}"
+        groups: sudo
+        shell: /usr/bin/zsh
+
+## shell
+
+    - name: install powerline from pip
+      pip: name=powerline-status
+
+    - name: record powerline module path
+      command: python -c "import powerline, os; print(os.path.dirname(powerline.__file__))"
+      register: powerlinepath
+      failed_when: powerlinepath is undefined
+
+    - name: profile and powerline autoload
+      copy:
+        content: |
+          {{profile}}
+
+          powerline-daemon -q
+          . {{powerlinepath.stdout_lines[0]}}/bindings/bash/powerline.sh
+        dest: "/home/{{myuser}}/.zshrc"
+
+## vim
+
+    - name: fetch vim themes
+      git:
+        repo: https://github.com/hugoroy/.vim
+        dest: "/home/{{myuser}}/.vim"
+
+    - name: create basic vimrc
+      copy: content="{{vimrc}}\nset rtp+={{powerlinepath.stdout_lines[0]}}/bindings/vim\n" dest="/home/{{myuser}}/.vimrc"
+
+## tmux
+
+    - name: powerline support for tmux
+      copy: content="{{tmuxconf}}\nsource {{powerlinepath.stdout_lines[0]}}/bindings/tmux/powerline.conf\n" dest="/home/{{myuser}}/.tmux.conf"
+
+## chown user
+
+    - name: create .ssh directory
+      file:
+        path: "/home/{{myuser}}/.ssh"
+        state: directory
+        mode: 0700
+
+    - name: fetch SSH pubkeys
+      get_url:
+        url: "https://github.com/{{myghuser}}.keys"
+        dest: "/home/{{myuser}}/.ssh/authorized_keys"
+        mode: 0600
+
+    - name: chown user
+      file:
+        path: "/home/{{myuser}}"
+        owner: "{{myuser}}"
+        recurse: yes

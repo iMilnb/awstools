@@ -1,0 +1,55 @@
+{
+  "variables": {
+    "aws_access_key": "",
+    "aws_secret_key": "",
+    "username": "{{user `username`}}",
+    "githubname": "{{user `githubname`}}"
+  },
+  "builders": [{
+    "type": "amazon-ebs",
+    "access_key": "{{user `aws_access_key`}}",
+    "secret_key": "{{user `aws_secret_key`}}",
+    "region": "eu-central-1",
+    "source_ami_filter": {
+      "filters": {
+        "virtualization-type": "hvm",
+        "name": "debian-jessie-*",
+        "architecture": "x86_64",
+        "root-device-type": "ebs"
+      },
+      "owners": [
+        "379101102735"
+      ],
+      "most_recent": true
+    },
+    "instance_type": "t2.micro",
+    "ssh_username": "admin",
+    "ami_name": "{{user `ami_basename`}}_{{timestamp}}",
+    "subnet_id": "{{user `subnetid`}}",
+    "security_group_id": "{{user `sgid`}}",
+    "associate_public_ip_address": false
+  }],
+  "provisioners": [{
+    "type": "shell",
+    "inline": [
+      "echo 'Acquire::ForceIPv4 \"true\";' | sudo tee /etc/apt/apt.conf.d/99force-ipv4",
+      "echo 'deb http://cloudfront.debian.net/debian jessie-backports main' |sudo tee /etc/apt/sources.list.d/backports.list",
+      "sudo apt-get update",
+      "sudo apt-get -t jessie-backports install -y ansible"
+    ]
+  }, {
+    "type": "ansible-local",
+    "playbook_file": "essentials.yml",
+    "command": "PYTHONUNBUFFERED=1 ansible-playbook",
+    "extra_arguments": ["--extra-vars \"myuser={{user `username`}} myghuser={{user `githubname`}}\""]
+  }],
+  "post-processors": [
+     [
+      {
+        "output": "manifest.json",
+        "strip_path": true,
+        "type": "manifest"
+      }
+     ]
+  ]
+}

@@ -1,0 +1,47 @@
+PARAMS="[
+    {
+        \"ParameterKey\": \"AmiId\",
+        \"ParameterValue\": \"${AMIID##*:}\",
+        \"UsePreviousValue\": false
+    },
+    {
+        \"ParameterKey\": \"InstanceName\",
+        \"ParameterValue\": \"${INSTANCENAME}\",
+        \"UsePreviousValue\": false
+    },
+    {
+        \"ParameterKey\": \"IamInstanceProfile\",
+        \"ParameterValue\": \"${INSTANCEPROFILE}\",
+        \"UsePreviousValue\": false
+    },
+    {
+        \"ParameterKey\": \"SecurityGroups\",
+        \"ParameterValue\": \"${SGSID}\",
+        \"UsePreviousValue\": false
+    },
+    {
+        \"ParameterKey\": \"KeyName\",
+        \"ParameterValue\": \"${KEYNAME}\",
+        \"UsePreviousValue\": false
+    },
+    {
+        \"ParameterKey\": \"InstanceType\",
+        \"ParameterValue\": \"${TYPE}\",
+        \"UsePreviousValue\": false
+    },
+    {
+        \"ParameterKey\": \"EnvType\",
+        \"ParameterValue\": \"${ENVTYPE}\",
+        \"UsePreviousValue\": false
+    },
+    {
+        \"ParameterKey\": \"ScaleCapacity\",
+        \"ParameterValue\": \"${CAPACITY}\",
+        \"UsePreviousValue\": false
+    },
+    {
+        \"ParameterKey\": \"Subnets\",
+        \"ParameterValue\": \"${SUBNETSID}\",
+        \"UsePreviousValue\": false
+    }
+]"
