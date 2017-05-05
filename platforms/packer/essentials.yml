@@ -58,6 +58,11 @@
         groups: sudo
         shell: /usr/bin/zsh
 
+## aws
+
+    - name: install AWS CLI
+      pip: name=awscli
+
 ## shell
 
     - name: install powerline from pip
