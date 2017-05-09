@@ -15,6 +15,11 @@
       colorscheme molokai-transparent
       set laststatus=2
 
+      au FileType python set ts=4 expandtab
+      au FileType javascript set ts=4 expandtab
+      au FileType html set ts=2 expandtab
+      au FileType yaml,json set ts=2 expandtab
+
     tmuxconf: |
       set-option -g prefix2 C-q
       set-option -g default-terminal "screen-256color"
