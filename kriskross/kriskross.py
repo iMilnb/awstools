@@ -9,10 +9,11 @@ Usage:
 
 """
 
+import os
 import sys
-import boto3
 import json
 import uuid
+import boto3
 import requests
 import webbrowser
 from docopt import docopt
@@ -27,7 +28,7 @@ signin_url = 'https://signin.aws.amazon.com/federation'
 console_url = 'https://console.aws.amazon.com/'
 
 if awsaccounts == None:
-    awsaccounts = 'awsaccounts'
+    awsaccounts = '{0}/.awsaccounts'.format(os.path.expanduser('~'))
 
 prefs = json.load(open(awsaccounts))
 target = sys.argv[1]
