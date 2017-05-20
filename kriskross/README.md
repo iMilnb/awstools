@@ -28,5 +28,7 @@ If the role uses a MFA device, specify it with the `--mfa` parameter and the
 `mfa` parameter must be associated with the target in the `awsaccounts` file,
 its value is the MFA device serial number.
 
+```
 Usage:
   kriskross.py <target> [--awsaccounts=<file> --mfa=<token>]
+```
