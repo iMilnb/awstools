@@ -6,22 +6,39 @@ https://gist.githubusercontent.com/garnaat/10682964/raw/ef1caa152c006e33b54c0be8
 
 It uses an `awsaccounts` JSON file with the format:
 
-    {
-        "thirdpartyaccount": {
-            "account": "981036328202",
-            "role": "ThirdParty",
-            "external-id": "123456789"
-        },
-        "childaccount": {
-            "account": "287487895991",
-            "role": "ChildAdmin",
-        },
-        "myownaccount": {
-            "account": "636487856791",
-            "role": "MFAAdmin",
-            "mfa": "arn:aws:iam::225011332614:mfa/MySelf"
-        }
+```
+{
+    "thirdpartyaccount": {
+        "account": "981036328202",
+        "role": "ThirdParty",
+        "external-id": "123456789"
+    },
+    "childaccount": {
+        "account": "287487895991",
+        "role": "ChildAdmin",
+    },
+    "myownaccount": {
+        "account": "636487856791",
+        "role": "MFAAdmin",
+        "mfa": "arn:aws:iam::225011332614:mfa/MySelf"
+    },
+    "myotheraccount": {
+        "profile": "othercompany",
+        "account": "123468236778",
+        "role": "MFAAdmin",
+        "mfa": "arn:aws:iam::678067632434:mfa/MySelf"
     }
+}
+```
+
+There are many possible combinations:
+
+* Direct, own account access, by creating a cross acount role with the local account id
+* Child account, by enabling cross account access
+* Third party account using an external id
+* Direct account access using `awscli` profiles
+
+All with or without MFA (while enabling MFA is highly recommanded).
 
 You may give a path to a preferred path using the `--awsaccounts=` parameter.
 If the role uses a MFA device, specify it with the `--mfa` parameter and the
