@@ -4,7 +4,7 @@ https://aws.amazon.com/blogs/security/how-to-enable-cross-account-access-to-the-
 and this `botocore` version:
 https://gist.githubusercontent.com/garnaat/10682964/raw/ef1caa152c006e33b54c0be8226f31ba35db331e/gistfile1.py
 
-It uses an `awsaccounts` JSON file with the format:
+It uses an `~/.awsaccounts` JSON file with the format:
 
 ```
 {
@@ -12,6 +12,12 @@ It uses an `awsaccounts` JSON file with the format:
         "account": "981036328202",
         "role": "ThirdParty",
         "external-id": "123456789"
+    },
+    "thirdpartyaccountwithMFA": {
+        "account": "123036328892",
+        "role": "ThirdParty",
+        "external-id": "123456789"
+        "mfa": "arn:aws:iam::225011332614:mfa/MySelf"
     },
     "childaccount": {
         "account": "287487895991",
@@ -40,10 +46,9 @@ There are many possible combinations:
 
 All with or without MFA (while enabling MFA is highly recommanded).
 
-You may give a path to a preferred path using the `--awsaccounts=` parameter.
-If the role uses a MFA device, specify it with the `--mfa` parameter and the
-`mfa` parameter must be associated with the target in the `awsaccounts` file,
-its value is the MFA device serial number.
+You may give an alternative path and name for the account properties file using the
+`--awsaccounts=` parameter.  
+If the role uses a MFA device, specify it with the `--mfa` parameter along with a `mfa` key associated with the target in the `awsaccounts` file which value is the MFA device serial number.
 
 ```
 Usage:
