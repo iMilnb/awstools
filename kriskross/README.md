@@ -1,6 +1,6 @@
 ### About
 
-`kriskross` can start an AWS console using cross account roles from the shell or a basic web service. It can read `awscli` _profile_ and has [MFA][2] support.
+`kriskross` can start an AWS console using cross account roles from the shell or a basic web service. It can read `awscli` _profile_ and has [MFA][2] support.  
 `kriskross` can also be started as a minimal web server so _MFA_ copy & paste from your mobile device is less prone to errors.
 
 ### Configuration
@@ -77,7 +77,7 @@ From the command line:
 kriskross.py <target> [--awsaccounts=<file> --mfa=<token>]
 ```
 
-Start as a local web service:
+Start as a local web service (default port is _5000_):
 
 ```
 export FLASK_APP=kriskross.py
