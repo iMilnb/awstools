@@ -1,9 +1,9 @@
-Starts an AWS console from the shell based on cross account roles.
-This script is an updated and cleaner version of the one from AWS:
-https://aws.amazon.com/blogs/security/how-to-enable-cross-account-access-to-the-aws-management-console/
-and this `botocore` version:
-https://gist.githubusercontent.com/garnaat/10682964/raw/ef1caa152c006e33b54c0be8226f31ba35db331e/gistfile1.py  
-It adds key features like _profile_ and [MFA][2] support.
+### About
+
+`kriskross` can start an AWS console using cross account roles from the shell or a basic web service. It can read `awscli` _profile_ and has [MFA][2] support.
+`kriskross` can also be started as a minimal web server so _MFA_ copy & paste from your mobile device is less prone to errors.
+
+### Configuration
 
 It uses an `~/.awsaccounts` JSON file with the format:
 
@@ -69,10 +69,27 @@ You may give an alternative path and name for the account properties file using 
 `--awsaccounts=` parameter.  
 If the role uses a MFA device, specify it with the `--mfa` parameter along with a `mfa` key associated with the target in the `awsaccounts` file which value is the MFA device serial number.
 
+### Usage
+
+From the command line:
+
 ```
-Usage:
-  kriskross.py <target> [--awsaccounts=<file> --mfa=<token>]
+kriskross.py <target> [--awsaccounts=<file> --mfa=<token>]
 ```
+
+Start as a local web service:
+
+```
+export FLASK_APP=kriskross.py
+python -m flask run --host=0.0.0.0
+```
+
+### History
+
+This script is an updated and cleaner version of the one from AWS:
+https://aws.amazon.com/blogs/security/how-to-enable-cross-account-access-to-the-aws-management-console/
+and this `botocore` version:
+https://gist.githubusercontent.com/garnaat/10682964/raw/ef1caa152c006e33b54c0be8226f31ba35db331e/gistfile1.py  
 
 [1]: https://github.com/aws/aws-cli
 [2]: https://aws.amazon.com/iam/details/mfa/

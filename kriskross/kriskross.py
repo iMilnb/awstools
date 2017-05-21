@@ -17,71 +17,96 @@ import boto3
 import requests
 import webbrowser
 from docopt import docopt
+from flask import Flask, request, render_template, url_for
 
-args = docopt(__doc__, version = 'kriskross 0.2')
+app = Flask(__name__)
 
-target = args.get('<target>')
-awsaccounts = args.get('--awsaccounts')
-mfatoken = args.get('--mfa')
+def loadprefs():
+    """load preferences file
+    """
+    if 'awsaccounts' not in locals() or awsaccounts == None:
+        awsaccounts = '{0}/.awsaccounts'.format(os.path.expanduser('~'))
 
-signin_url = 'https://signin.aws.amazon.com/federation'
-console_url = 'https://console.aws.amazon.com/'
+    return json.load(open(awsaccounts))
 
-if awsaccounts == None:
-    awsaccounts = '{0}/.awsaccounts'.format(os.path.expanduser('~'))
 
-prefs = json.load(open(awsaccounts))
-target = sys.argv[1]
+def do_auth(prefs, target, mfatoken):
+    """Assume role, retrieve temporary token, authenticate and launch browser
+    """
+    signin_url = 'https://signin.aws.amazon.com/federation'
+    console_url = 'https://console.aws.amazon.com/'
 
-# prepare assume role parameters
-params = {}
-params['RoleArn'] = 'arn:aws:iam::{0}:role/{1}'.format(
-    prefs[target]['account'], prefs[target]['role']
-)
-# random hexadecimal
-params['RoleSessionName'] = uuid.uuid4().hex
-# ExternalId for 3rd party accounts
-if 'external-id' in prefs[target]:
-    params['ExternalId'] = prefs[target]['external-id']
-# MFA token
-if mfatoken != None and 'mfa' in prefs[target]:
-    params['SerialNumber'] = prefs[target]['mfa']
-    params['TokenCode'] = mfatoken
+    # prepare assume role parameters
+    params = {}
+    params['RoleArn'] = 'arn:aws:iam::{0}:role/{1}'.format(
+        prefs[target]['account'], prefs[target]['role']
+    )
+    # random hexadecimal
+    params['RoleSessionName'] = uuid.uuid4().hex
+    # ExternalId for 3rd party accounts
+    if 'external-id' in prefs[target]:
+        params['ExternalId'] = prefs[target]['external-id']
+    # MFA token
+    if mfatoken != None and 'mfa' in prefs[target]:
+        params['SerialNumber'] = prefs[target]['mfa']
+        params['TokenCode'] = mfatoken
 
-p = {}
-if 'profile' in prefs[target]:
-    p['profile_name'] = prefs[target]['profile']
+    p = {}
+    if 'profile' in prefs[target]:
+        p['profile_name'] = prefs[target]['profile']
 
-s = boto3.Session(**p)
-sts = s.client('sts')
+    s = boto3.Session(**p)
+    sts = s.client('sts')
 
-creds = sts.assume_role(**params)
+    creds = sts.assume_role(**params)
 
-json_creds = json.dumps(
-    {
-        'sessionId': creds['Credentials']['AccessKeyId'],
-        'sessionKey': creds['Credentials']['SecretAccessKey'],
-        'sessionToken': creds['Credentials']['SessionToken']
+    json_creds = json.dumps(
+        {
+            'sessionId': creds['Credentials']['AccessKeyId'],
+            'sessionKey': creds['Credentials']['SecretAccessKey'],
+            'sessionToken': creds['Credentials']['SessionToken']
+        }
+    )
+
+    params = {'Action': 'getSigninToken', 'Session': json_creds}
+
+
+    r = requests.get(signin_url, params = params)
+
+    params = {
+        'Action': 'login',
+        'Issuer': '',
+        'Destination': console_url,
+        'SigninToken': json.loads(r.text)['SigninToken'],
     }
-)
 
-params = {'Action': 'getSigninToken', 'Session': json_creds}
+    if 'external-id' in prefs[target]:
+        params['ExternalId'] = prefs[target]['external-id']
 
+    uri = '{0}?{1}'.format(signin_url, requests.compat.urlencode(params))
 
-r = requests.get(signin_url, params = params)
-
-params = {
-    'Action': 'login',
-    'Issuer': '',
-    'Destination': console_url,
-    'SigninToken': json.loads(r.text)['SigninToken'],
-}
-
-if 'external-id' in prefs[target]:
-    params['ExternalId'] = prefs[target]['external-id']
-
-uri = '{0}?{1}'.format(signin_url, requests.compat.urlencode(params))
-
-webbrowser.open(uri)
+    webbrowser.open(uri)
 
 
+@app.route('/', methods=['GET', 'POST'])
+def web_service():
+    """Minimal web service to receive MFA
+    """
+    prefs = loadprefs()
+    if request.method == 'POST':
+        try:
+            do_auth(prefs, request.form['target'], request.form['mfa'])
+        except:
+            return "Authentication error"
+
+    return render_template('targets.html', prefs = prefs)
+
+
+if __name__ == "__main__":
+    args = docopt(__doc__, version = 'kriskross 0.2')
+
+    target = args.get('<target>')
+    awsaccounts = args.get('--awsaccounts')
+    mfatoken = args.get('--mfa')
+
+    do_auth(loadprefs(), target, mfatoken)
