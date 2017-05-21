@@ -1,13 +1,13 @@
 <!doctype html>
 <html>
-   <body>
+  <body>
+    <form action="{{url_for('web_service')}}" method="POST">
       {% for t in prefs %}
-         <p>
-            <form action="{{url_for('web_service')}}" method="POST">
-                <input type="text" name="mfa" value="" />
-                <input type="submit" name="target" value="{{ t }}" />
-            </form>
-         </p>
+        <p>
+          <input type="text" name="mfa" value="" />
+          <input type="submit" name="target" value="{{ t }}" />
+        </p>
       {% endfor %}
-   </body>
+    </form>
+  </body>
 </html>
