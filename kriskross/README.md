@@ -9,6 +9,32 @@ It uses an `~/.awsaccounts` JSON file with the format:
 
 ```
 {
+    "target": {
+        "account": "AWS account id",
+        "role": "cross account access role name",
+        "external-id": "optional external id for secure 3rd party access",
+        "mfa": "optional MFA device serial number",
+        "profile": "optional aws cli profile name for non-default direct access"
+    },
+    {
+        ...
+    }
+}
+```
+
+An example `awsaccount` file would be:
+
+```
+{
+    "myownaccount": {
+        "account": "636487856791",
+        "role": "MFAAdmin",
+        "mfa": "arn:aws:iam::225011332614:mfa/MySelf"
+    },
+    "childaccount": {
+        "account": "287487895991",
+        "role": "ChildAdmin",
+    },
     "thirdpartyaccount": {
         "account": "981036328202",
         "role": "ThirdParty",
@@ -18,15 +44,6 @@ It uses an `~/.awsaccounts` JSON file with the format:
         "account": "123036328892",
         "role": "ThirdParty",
         "external-id": "123456789"
-        "mfa": "arn:aws:iam::225011332614:mfa/MySelf"
-    },
-    "childaccount": {
-        "account": "287487895991",
-        "role": "ChildAdmin",
-    },
-    "myownaccount": {
-        "account": "636487856791",
-        "role": "MFAAdmin",
         "mfa": "arn:aws:iam::225011332614:mfa/MySelf"
     },
     "myotheraccount": {
@@ -43,6 +60,7 @@ There are many possible combinations:
 * Direct, own account access, by creating a cross acount role with the local account id
 * Child account, by enabling cross account access
 * Third party account using an external id
+* Third party account using an external id and MFA
 * Direct account access using [awscli][1] profiles
 
 All with or without MFA (while enabling MFA is highly recommanded).
