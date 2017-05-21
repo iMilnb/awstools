@@ -1,13 +1,31 @@
 <!doctype html>
 <html>
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1,
+shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+  </head>
   <body>
-    <form action="{{url_for('web_service')}}" method="POST">
-      {% for t in prefs %}
-        <p>
-          <input type="text" name="mfa" value="" />
-          <input type="submit" name="target" value="{{ t }}" />
-        </p>
-      {% endfor %}
-    </form>
+    <div class="container">
+      <div class="col-md-6 offset-md-3 text-center" style="margin-top: 15px;">
+        <img src="{{url_for('static', filename='aws-iam.png')}}" height="50px">
+      </div>
+      <div class="col-md-6 offset-md-3">
+        {% for t in prefs %}
+            <form action="{{url_for('web_service')}}" method="POST">
+            <div class="input-group" style="margin-top: 10px;">
+              <input type="password" name="mfa" value="" class="form-control" />
+              <span class="input-group-btn">
+                <input type="submit" name="target" value="{{ t }}" class="btn btn-secondary" />
+              </span>
+            </div>
+          </form>
+        {% endfor %}
+      </div>
+    </div>
   </body>
 </html>
