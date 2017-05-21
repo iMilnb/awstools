@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://imil.net/stuff/kriskrosslogo.png" alt="Jump! Jump!"/>
+</p>
+
 ### About
 
 `kriskross` can start an AWS console using cross account roles from the shell or a basic web service. It can read `awscli` _profile_ and has [MFA][2] support. As a minimal web server `kriskross` makes _MFA_ copy & paste from your mobile device less prone to errors.
