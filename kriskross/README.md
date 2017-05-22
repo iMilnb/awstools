@@ -4,7 +4,8 @@
 
 ### About
 
-`kriskross` can start an AWS console using cross account roles from the **shell** or a basic **web service**. It can read `awscli` _profile_ and has [MFA][2] support. As a minimal web server `kriskross` makes _MFA_ copy & paste from your mobile device less prone to errors.
+`kriskross` can start an AWS console using cross account roles from the **shell** or a basic **web service**. It can read `awscli` _profile_ and has [MFA][2] support. As a minimal web server `kriskross` makes _MFA_ copy & paste from your mobile device less prone to errors.  
+Learn about Cross-Account Access [in this very well written article][5].
 
 ### Configuration
 
@@ -104,3 +105,4 @@ https://gist.githubusercontent.com/garnaat/10682964/raw/ef1caa152c006e33b54c0be8
 [2]: https://aws.amazon.com/iam/details/mfa/
 [3]: http://flask.pocoo.org/
 [4]: http://gunicorn.org/
+[5]: https://aws.amazon.com/blogs/security/how-to-enable-cross-account-access-to-the-aws-management-console/
