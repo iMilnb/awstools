@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://imil.net/stuff/kriskrosslogo.png" alt="Jump! Jump!"/>
+  <img src="https://imil.net/stuff/kriskrosslogo2.png" alt="Jump! Jump!"/>
 </p>
 
 ### About
