@@ -80,11 +80,17 @@ From the command line:
 kriskross.py <target> [--awsaccounts=<file> --mfa=<token>]
 ```
 
-Start as a local web service (default port is _5000_):
+Start as a foreground local web service ([Flask][3] default port is _5000_):
 
 ```
 export FLASK_APP=kriskross.py
 python -m flask run --host=0.0.0.0
+```
+
+Or start it as a daemon with [gunicorn][4] (default port _8000_):
+
+```
+gunicorn -D -b 0.0.0.0 kriskross:app
 ```
 
 ### History
@@ -96,3 +102,5 @@ https://gist.githubusercontent.com/garnaat/10682964/raw/ef1caa152c006e33b54c0be8
 
 [1]: https://github.com/aws/aws-cli
 [2]: https://aws.amazon.com/iam/details/mfa/
+[3]: http://flask.pocoo.org/
+[4]: http://gunicorn.org/
