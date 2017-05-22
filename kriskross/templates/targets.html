@@ -10,6 +10,11 @@
   </head>
   <body>
     <div class="container">
+      {% if auth_err == True %}
+        <div class="alert alert-danger" role="alert" style="margin-top: 10px;">
+          Authentication error
+        </div>
+      {% endif %}
       <div class="col-md-6 offset-md-3 text-center" style="margin-top: 15px;">
         <img src="{{url_for('static', filename='aws-iam.png')}}" height="50px">
       </div>
