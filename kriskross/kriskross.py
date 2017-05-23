@@ -93,14 +93,21 @@ def web_service():
     """Minimal web service to receive MFA
     """
     prefs = loadprefs()
-    auth_err = False
+    msg = None
+    err = None
+    target = None
     if request.method == 'POST':
         try:
-            do_auth(prefs, request.form['target'], request.form['mfa'])
-        except:
-            auth_err = True
+            target = request.form['target']
+            do_auth(prefs, target, request.form['mfa'])
+            msg = 'success'
+        except Exception, e:
+            msg = 'danger'
+            err = str(e)
 
-    return render_template('targets.html', prefs = prefs, auth_err = auth_err)
+    return render_template(
+        'targets.html', prefs = prefs, msg = msg, err = err, target = target
+    )
 
 
 if __name__ == "__main__":

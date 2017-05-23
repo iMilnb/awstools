@@ -10,9 +10,13 @@
   </head>
   <body>
     <div class="container">
-      {% if auth_err == True %}
-        <div class="alert alert-danger" role="alert" style="margin-top: 10px;">
-          Authentication error
+      {% if msg != None %}
+        <div class="alert alert-{{ msg }} text-center" role="alert" style="margin-top: 10px;">
+          {% if msg == 'success' %}
+            <strong>{{ target }}</strong> session successfully opened
+          {% else %}
+            Authentication error: {{ err }}
+          {% endif %}
         </div>
       {% endif %}
       <div class="col-md-6 offset-md-3 text-center" style="margin-top: 15px;">
