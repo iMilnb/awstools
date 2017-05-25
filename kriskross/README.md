@@ -4,12 +4,15 @@
 
 ### About
 
-`kriskross` can start an AWS console using cross account roles from the **shell** or a basic **web service**. It can read `awscli` _profile_ and has [MFA][2] support. As a minimal web server `kriskross` makes _MFA_ copy & paste from your mobile device less prone to errors.  
+`kriskross` can start an _AWS_ console **on your own account**, sub-accounts or third party accounts using cross account roles from the **shell** or a basic **web service**: no more struggling with your _AWS console login / password_!. It can read `awscli` _profile_ and has [MFA][2] support. As a minimal web server`kriskross` makes _MFA_ copy & paste from your mobile device less prone to
+errors.  
 Learn about Cross-Account Access [in this very well written article][5].
+
+_Hint: yes you **can** attach a cross account role to your own local account just by entering your own account id when creating the cross account role._
 
 ### Configuration
 
-It uses an `~/.awsaccounts` JSON file with the format:
+It uses an `~/.awsaccounts` _JSON_ file with the format:
 
 ```
 {
@@ -61,13 +64,13 @@ An example `awsaccount` file would be:
 
 There are many possible combinations:
 
-* Direct, own account access, by creating a cross acount role with the local account id
+* Direct, own account access, by creating a cross account role with the local account id
 * Child account, by enabling cross account access
 * Third party account using an external id
 * Third party account using an external id and MFA
 * Direct account access using [awscli][1] profiles
 
-All with or without MFA (while enabling MFA is highly recommanded).
+All with or without MFA (while enabling MFA is highly recommended).
 
 You may give an alternative path and name for the account properties file using the
 `--awsaccounts=` parameter.  
@@ -96,7 +99,7 @@ gunicorn -D -b 0.0.0.0 kriskross:app
 
 ### History
 
-This script is an updated and cleaner version of the one from AWS:
+This script is vaguely derived from _AWS_:
 https://aws.amazon.com/blogs/security/how-to-enable-cross-account-access-to-the-aws-management-console/
 and this `botocore` version:
 https://gist.githubusercontent.com/garnaat/10682964/raw/ef1caa152c006e33b54c0be8226f31ba35db331e/gistfile1.py  
