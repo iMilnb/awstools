@@ -118,3 +118,4 @@ if __name__ == "__main__":
     mfatoken = args.get('--mfa')
 
     do_auth(loadprefs(), target, mfatoken)
+
