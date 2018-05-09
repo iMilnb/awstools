@@ -52,6 +52,10 @@ def do_auth(prefs, target, mfatoken):
         params['SerialNumber'] = prefs[target]['mfa']
         params['TokenCode'] = mfatoken
 
+    # Session duration
+    if 'duration' in prefs[target]:
+        params['DurationSeconds'] = prefs[target]['duration']
+
     p = {}
     if 'profile' in prefs[target]:
         p['profile_name'] = prefs[target]['profile']
