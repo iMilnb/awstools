@@ -22,6 +22,12 @@ from flask import Flask, request, render_template, url_for
 
 app = Flask(__name__)
 
+# add more!
+browser_private_flag = {
+    'chrome': '--incognito',
+    'firefox': '--private-window'
+}
+
 def loadprefs():
     """load preferences file
     """
@@ -95,13 +101,11 @@ def do_auth(prefs, target, mfatoken):
 
         if browserapp:
             browserpath = find_executable(browserapp)
+            private = ''
             if browserpath:
-                if 'chrome' in browserapp:
-                    private = ' --incognito %s'
-                elif 'firefox' in browserapp:
-                    private = ' --private-window %s'
-                else:
-                    private = ''
+                for k in browser_private_flag.keys():
+                    if k in browserapp:
+                        private = ' {0} %s'.format(browser_private_flag[k])
 
                 browser = webbrowser.get('{0}{1}'.format(browserpath, private))
                 browser.open(uri)
