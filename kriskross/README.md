@@ -62,6 +62,27 @@ An example `awsaccount` file would be:
 }
 ```
 
+* The hash index is really a label, independent from your `~/.aws` configuration.
+* `account` is the account number to build the role from
+* `role` is the role name
+* `mfa` is the _MFA_ "serial device", actually the _ARN_ as shown in the _IAM_ console
+* `external-id` is the arbitrary `id` you agreed to use with the third party
+* `profile` is an _AWS_ `profile_name` you would like to pivot from
+* `private` might be set to `yes` if you'd like to open the console on a browser private window (only _Firefox_ or _Chrome_ by now)
+
+A very simple, single account based file could be:
+
+```
+{
+  "simpleaccount": {
+    "account": "636487856791"
+    "role": "myrole"
+  }
+}
+```
+
+Assuming you created a role called `myrole` in your current account, with the same account `id` as the source account, yes, this works. This configuration relies on a `~/.aws/{credentials,config}` with a default section and the corresponding `aws_access_key_id` / `aws_secret_access_key` pair.
+
 There are many possible combinations:
 
 * Direct, own account access, by creating a cross account role with the local account id
