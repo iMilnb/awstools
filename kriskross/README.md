@@ -69,6 +69,7 @@ An example `awsaccount` file would be:
 * `external-id` is the arbitrary `id` you agreed to use with the third party
 * `profile` is an _AWS_ `profile_name` you would like to pivot from
 * `private` might be set to `yes` if you'd like to open the console on a browser private window (only _Firefox_ or _Chrome_ by now)
+  * This feature relies on a `${HOME}/.config/mimeapps.list` file which you may lack if you are not using a `GNU/Linux` or `BSD/UNIX` system with some kind of desktop environment. You can nevertheless use this feature by running the following command: `mkdir -p ~/.config && echo "text/html=firefox.desktop" > ~/.config/mimeapps.list`. Obviously replace with `google-chrome.desktop` if _Chrome_ is your browser of choice.
 
 A very simple, single account based file could be:
 
