@@ -17,6 +17,7 @@ import boto3
 import requests
 import webbrowser
 from docopt import docopt
+from distutils.spawn import find_executable
 from flask import Flask, request, render_template, url_for
 
 app = Flask(__name__)
@@ -84,6 +85,30 @@ def do_auth(prefs, target, mfatoken):
         params['ExternalId'] = prefs[target]['external-id']
 
     uri = '{0}?{1}'.format(signin_url, requests.compat.urlencode(params))
+
+    if 'private' in prefs[target] and prefs[target]['private'] == 'yes':
+        browserapp = ''
+        home = os.environ.get('HOME')
+        with open('{0}/.config/mimeapps.list'.format(home)) as f:
+            for l in f:
+                if l.startswith('text/html='):
+                    browserapp = l.split('=')[1].replace('.desktop', '')
+                    browserapp = browserapp.rstrip()
+                    break
+
+        if browserapp:
+            browserpath = find_executable(browserapp)
+            if browserpath:
+                if 'chrome' in browserapp:
+                    private = ' --incognito %s'
+                elif 'firefox' in browserapp:
+                    private = ' --private-window %s'
+                else:
+                    private = ''
+
+                browser = webbrowser.get('{0}{1}'.format(browserpath, private))
+                browser.open(uri)
+                return
 
     webbrowser.open(uri)
 
