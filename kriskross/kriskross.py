@@ -136,7 +136,7 @@ def web_service():
 
 
 if __name__ == "__main__":
-    args = docopt(__doc__, version = 'kriskross 0.2')
+    args = docopt(__doc__, version = 'kriskross 0.3')
 
     target = args.get('<target>')
     awsaccounts = args.get('--awsaccounts')
