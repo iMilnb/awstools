@@ -70,7 +70,7 @@ An example `awsaccount` file would be:
 * `profile` is an _AWS_ `profile_name` you would like to pivot from.
 * `duration` is the role session duration, in seconds. Default duration is 3600, max session is 12 hours.
 * `private` might be set to `yes` if you'd like to open the console on a browser private window (only _Firefox_ or _Chrome_ by now)
-  * This feature relies on a `${HOME}/.config/mimeapps.list` file which you may lack if you are not using a `GNU/Linux` or `BSD/UNIX` system with some kind of desktop environment. You can nevertheless use this feature by running the following command: `mkdir -p ~/.config && echo "text/html=firefox.desktop" > ~/.config/mimeapps.list`. Obviously replace with `google-chrome.desktop` if _Chrome_ is your browser of choice.
+  * This feature relies on a `BROWSER` variable containing the executable name for your favorite web browser. Either add `BROWSER=firefox; export BROWSER` (or `google-chrome`) to your shell profile file, or prepend `kriskross` execution with the variable set.
 
 A very simple, single account based file could be:
 

@@ -91,14 +91,7 @@ def do_auth(prefs, target, mfatoken):
     uri = '{0}?{1}'.format(signin_url, requests.compat.urlencode(params))
 
     if 'private' in prefs[target] and prefs[target]['private'] == 'yes':
-        browserapp = ''
-        home = os.environ.get('HOME')
-        with open('{0}/.config/mimeapps.list'.format(home)) as f:
-            for l in f:
-                if l.startswith('text/html='):
-                    browserapp = l.split('=')[1].replace('.desktop', '')
-                    browserapp = browserapp.rstrip()
-                    break
+        browserapp = os.environ.get('BROWSER')
 
         if browserapp:
             browserpath = find_executable(browserapp)
