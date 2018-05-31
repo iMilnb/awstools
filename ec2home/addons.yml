@@ -1,0 +1,12 @@
+---
+add_pkgs:
+  - alpine
+  - netcat
+
+pip_pkgs:
+  - ansible
+  - awscli
+  - boto3
+
+copy_files:
+  ~/wrk/etc/pinerc: "{{homedir}}/.pinerc"
